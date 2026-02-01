@@ -1,1 +1,100 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
+function App() {
+  const [listings, setListings] = useState([]);
+  const [formData, setFormData] = useState({
+    title: '', city: '', size: '', rent: '', contact: '', description: ''
+  });
+
+  // Fetch listings from backend
+  useEffect(() => {
+    fetch('http://localhost:5000/api/listings')
+      .then(res => res.json())
+      .then(data => setListings(data))
+      .catch(err => console.error('Error:', err));
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch('http://localhost:5000/api/listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+      alert('Listing submitted for approval!');
+      setFormData({ title: '', city: '', size: '', rent: '', contact: '', description: '' });
+    }
+  };
+
+  return (
+    <div className="App">
+      <header className="header">
+        <h1>Makyard Warehouse</h1>
+        <p>Delhi NCR & Haryana Warehouse Listings</p>
+      </header>
+
+      <main className="container">
+        {/* Listing Form */}
+        <section className="form-section">
+          <h2>List Your Warehouse</h2>
+          <form onSubmit={handleSubmit} className="listing-form">
+            <input type="text" placeholder="Warehouse Title" value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+            
+            <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required>
+              <option value="">Select City</option>
+              <option value="delhi">Delhi</option>
+              <option value="gurgaon">Gurugram</option>
+              <option value="noida">Noida</option>
+              <option value="faridabad">Faridabad</option>
+              <option value="panipat">Panipat</option>
+            </select>
+            
+            <input type="number" placeholder="Size (sq ft)" value={formData.size}
+              onChange={(e) => setFormData({...formData, size: e.target.value})} required />
+            
+            <input type="number" placeholder="Monthly Rent (₹)" value={formData.rent}
+              onChange={(e) => setFormData({...formData, rent: e.target.value})} required />
+            
+            <input type="tel" placeholder="Contact Number" value={formData.contact}
+              onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
+            
+            <textarea placeholder="Description..." rows="3" value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
+            
+            <button type="submit">Submit Listing</button>
+          </form>
+        </section>
+
+        {/* Listings Display */}
+        <section className="listings-section">
+          <h2>Available Warehouses ({listings.length})</h2>
+          <div className="listings-grid">
+            {listings.map((listing) => (
+              <div key={listing._id} className="listing-card">
+                <h3>{listing.title}</h3>
+                <p><strong>📍 Location:</strong> {listing.city}</p>
+                <p><strong>📏 Size:</strong> {listing.size} sq ft</p>
+                <p><strong>💰 Rent:</strong> ₹{listing.rent}/month</p>
+                <p className="description">{listing.description}</p>
+                <a href={`tel:${listing.contact}`} className="call-btn">
+                  📞 Call: {listing.contact}
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer className="footer">
+        <p>Contact: 7082500700 | Email: info@makyard.in</p>
+        <p>© 2023 Makyard Warehouse Listings</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
